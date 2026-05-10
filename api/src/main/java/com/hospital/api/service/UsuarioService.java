@@ -4,33 +4,35 @@ import com.hospital.api.dto.request.UsuarioRequestDTO;
 import com.hospital.api.dto.response.UsuarioResponseDTO;
 import com.hospital.api.entity.Usuario;
 import com.hospital.api.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
-        usuario.setCpf(dto.cpf());
+        usuario.setCpf(dto.cpf().replaceAll("\\D", ""));
         usuario.setEmail(dto.email());
         usuario.setTelefone(dto.telefone());
-
-        // Aqui estamos salvando a senha em texto limpo por enquanto.
-        // O próximo grande passo será criptografar essa senha antes de salvar!
-        usuario.setSenha(dto.senha());
-
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
         usuario.setTipo(dto.tipo());
+        usuario.setAtivo(true);
+        usuario.setCriadoEm(LocalDateTime.now());
 
         usuarioRepository.save(usuario);
         return new UsuarioResponseDTO(usuario);
@@ -45,16 +47,16 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public UsuarioResponseDTO buscarPorId(Integer id) { // <-- Troque Long por Integer aqui
+    public UsuarioResponseDTO buscarPorId(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
         return new UsuarioResponseDTO(usuario);
     }
 
     @Transactional
-    public void deletar(Integer id) { // <-- Troque Long por Integer aqui também
+    public void deletar(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado para exclusão"));
+                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado para exclusao"));
 
         usuario.inativar();
         usuarioRepository.save(usuario);

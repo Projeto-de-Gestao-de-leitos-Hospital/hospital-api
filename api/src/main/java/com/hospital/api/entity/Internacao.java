@@ -1,15 +1,17 @@
 package com.hospital.api.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import java.time.LocalDate; // Importante: Mudamos para LocalDate
+import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "internacao")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "idInternacao")
 public class Internacao {
 
     @Id
@@ -17,37 +19,35 @@ public class Internacao {
     @Column(name = "id_internacao")
     private Integer idInternacao;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_paciente", nullable = false)
+    // Ajustado para id_paciente
+    @ManyToOne
+    @JoinColumn(name = "id_paciente")
     private Paciente paciente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_leito", nullable = false)
+    // Ajustado para id_leito
+    @ManyToOne
+    @JoinColumn(name = "id_leito")
     private Leito leito;
 
-    // --- MUDANÇA AQUI: LocalDate para refletir o "DATE" do Postgres ---
-    @Column(name = "data_entrada", nullable = false)
-    private LocalDate dataEntrada = LocalDate.now();
+    // No seu banco é do tipo 'date', então usamos LocalDate em vez de LocalDateTime
+    @Column(name = "data_entrada")
+    private LocalDate dataEntrada;
 
+    // Ajustado de data_alta para data_saida
     @Column(name = "data_saida")
     private LocalDate dataSaida;
-    // -----------------------------------------------------------------
 
-    @Column(name = "motivo_internacao", columnDefinition = "TEXT")
+    // 👇 NOVOS CAMPOS ESPELHADOS DO SEU BANCO DE DADOS 👇
+    @Column(name = "motivo_internacao")
     private String motivoInternacao;
 
-    @Column(name = "medico_responsavel", length = 100)
+    @Column(name = "medico_responsavel")
     private String medicoResponsavel;
 
-    @Column(name = "convenio", length = 100)
     private String convenio;
 
-    @Column(name = "ativo", nullable = false)
-    private Boolean ativo = true;
+    private Boolean ativo;
 
-    // A data de criação continua sendo LocalDateTime (TIMESTAMP no banco)
-    @Column(name = "criado_em", nullable = false, updatable = false)
-    private LocalDateTime criadoEm = LocalDateTime.now();
-
-    public Internacao() {}
+    @Column(name = "criado_em")
+    private LocalDateTime criadoEm;
 }

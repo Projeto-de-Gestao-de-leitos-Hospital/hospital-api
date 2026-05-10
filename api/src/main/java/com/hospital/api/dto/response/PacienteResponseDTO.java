@@ -5,7 +5,7 @@ import com.hospital.api.enums.SexoPaciente;
 import java.time.LocalDate;
 
 public record PacienteResponseDTO(
-        Long idPaciente,
+        Integer idPaciente,
         String nome,
         String cpf,
         String numeroProntuario,

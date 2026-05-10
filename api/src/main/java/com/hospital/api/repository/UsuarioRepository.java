@@ -2,11 +2,9 @@ package com.hospital.api.repository;
 
 import com.hospital.api.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.Optional;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
-
-    Optional<Usuario> findByEmail(String email);
+    UserDetails findByCpf(String cpf); // <-- Tem que ser findByCpf!
 
 }

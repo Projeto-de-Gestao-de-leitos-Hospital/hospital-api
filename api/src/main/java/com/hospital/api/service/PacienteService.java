@@ -7,41 +7,50 @@ import com.hospital.api.entity.Paciente;
 import com.hospital.api.entity.Usuario;
 import com.hospital.api.enums.TipoUsuario;
 import com.hospital.api.repository.PacienteRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public PacienteService(PacienteRepository pacienteRepository) {
+    public PacienteService(PacienteRepository pacienteRepository, PasswordEncoder passwordEncoder) {
         this.pacienteRepository = pacienteRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public PacienteResponseDTO cadastrar(PacienteRequestDTO dto) {
-        // 1. Criação do login do paciente (Regra US01)
+        var cpfLimpo = dto.cpf().replaceAll("\\D", "");
+        if (cpfLimpo.length() < 6) {
+            throw new IllegalArgumentException("CPF invalido para gerar senha inicial");
+        }
+
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
-        usuario.setCpf(dto.cpf());
+        usuario.setCpf(cpfLimpo);
         usuario.setTelefone(dto.telefoneContato());
-        usuario.setSenha(dto.cpf().substring(0, 6)); // Senha inicial padrão
-        usuario.setEmail(dto.cpf() + "@paciente.hospital.com"); // E-mail gerado automaticamente
+        usuario.setSenha(passwordEncoder.encode(cpfLimpo.substring(0, 6)));
+        usuario.setEmail(cpfLimpo + "@paciente.hospital.com");
         usuario.setTipo(TipoUsuario.PACIENTE);
+        usuario.setAtivo(true);
+        usuario.setCriadoEm(LocalDateTime.now());
 
-        // 2. Criação dos dados clínicos vinculados ao usuário
         Paciente paciente = new Paciente();
-        paciente.setUsuario(usuario); // <-- A ponte entre as duas tabelas!
+        paciente.setUsuario(usuario);
         paciente.setNumeroProntuario(dto.numeroProntuario());
         paciente.setDataNascimento(dto.dataNascimento());
         paciente.setSexo(dto.sexo());
         paciente.setNomeResponsavel(dto.nomeResponsavel());
         paciente.setTelefoneResponsavel(dto.telefoneResponsavel());
+        paciente.setAtivo(true);
 
-        // 3. Salva no banco (O CascadeType.ALL que colocamos na Entidade vai salvar o usuário junto automaticamente)
         pacienteRepository.save(paciente);
 
         return new PacienteResponseDTO(paciente);
@@ -58,16 +67,15 @@ public class PacienteService {
     @Transactional(readOnly = true)
     public PacienteResponseDTO buscarPorId(Long id) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Paciente nao encontrado"));
         return new PacienteResponseDTO(paciente);
     }
 
     @Transactional
     public PacienteResponseDTO atualizar(Long id, PacienteAtualizacaoDTO dto) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Paciente não encontrado para atualização"));
+                .orElseThrow(() -> new RuntimeException("Paciente nao encontrado para atualizacao"));
 
-        // Atualização manual no Service
         if (dto.telefoneContato() != null) {
             paciente.getUsuario().setTelefone(dto.telefoneContato());
         }
@@ -85,9 +93,8 @@ public class PacienteService {
     @Transactional
     public void deletar(Long id) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Paciente não encontrado para exclusão"));
+                .orElseThrow(() -> new RuntimeException("Paciente nao encontrado para exclusao"));
 
-        // Inativa tanto os dados clínicos quanto o acesso ao aplicativo!
         paciente.inativar();
         paciente.getUsuario().inativar();
 

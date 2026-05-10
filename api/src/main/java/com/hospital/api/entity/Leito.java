@@ -1,13 +1,15 @@
 package com.hospital.api.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "leito")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "idLeito")
 public class Leito {
 
     @Id
@@ -15,18 +17,14 @@ public class Leito {
     @Column(name = "id_leito")
     private Integer idLeito;
 
-    @Column(name = "codigo", length = 20, nullable = false, unique = true)
-    private String codigo;
+    private String numero;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_quarto", nullable = false)
+    // Relação: Muitos Leitos pertencem a Um Quarto
+    @ManyToOne
+    @JoinColumn(name = "quarto_id")
     private Quarto quarto;
 
-    @Column(name = "disponivel", nullable = false)
-    private Boolean disponivel = true;
+    private Boolean ocupado;
 
-    @Column(name = "ativo", nullable = false)
-    private Boolean ativo = true;
-
-    public Leito() {}
+    private Boolean ativo;
 }

@@ -2,59 +2,56 @@ package com.hospital.api.entity;
 
 import com.hospital.api.enums.StatusChamado;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
 @Entity
 @Table(name = "chamado")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "idChamado")
 public class Chamado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_chamado")
-    private Long idChamado;
+    private Integer idChamado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_paciente", nullable = false)
+    // Conectando direto com o Paciente (igual ao seu BD)
+    @ManyToOne
+    @JoinColumn(name = "id_paciente")
     private Paciente paciente;
 
-    // --- MUDANÇA AQUI: Tiramos o Integer e colocamos a Entidade Leito ---
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_leito", nullable = false)
+    // Conectando com o Leito
+    @ManyToOne
+    @JoinColumn(name = "id_leito")
     private Leito leito;
 
-    // --- MUDANÇA AQUI: Tiramos o Integer e colocamos a Entidade Servico ---
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_servico", nullable = false)
+    // Conectando com o Servico (Você tem id_servico no BD)
+    @ManyToOne
+    @JoinColumn(name = "id_servico")
     private Servico servico;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // Quem vai atender (No seu BD está id_colaborador)
+    @ManyToOne
     @JoinColumn(name = "id_colaborador")
     private Usuario colaborador;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 50)
-    private StatusChamado status = StatusChamado.ABERTO;
+    private StatusChamado status;
 
-    @Column(name = "prioridade", nullable = false, length = 20)
-    private String prioridade = "MEDIA";
+    private String prioridade;
 
-    @Column(columnDefinition = "TEXT")
     private String observacao;
 
-    @Column(name = "data_abertura", nullable = false, updatable = false)
-    private LocalDateTime dataAbertura = LocalDateTime.now();
+    @Column(name = "data_abertura")
+    private LocalDateTime dataAbertura;
 
     @Column(name = "data_inicio_atend")
     private LocalDateTime dataInicioAtend;
 
     @Column(name = "data_conclusao")
     private LocalDateTime dataConclusao;
-
-    public Chamado() {
-    }
 }

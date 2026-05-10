@@ -2,53 +2,52 @@ package com.hospital.api.entity;
 
 import com.hospital.api.enums.SexoPaciente;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "paciente")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "idPaciente")
 public class Paciente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_paciente")
-    private Long idPaciente;
+    private Integer idPaciente;
 
-
+    // 👇 A PONTE ENTRE AS TABELAS QUE O SERVICE ESTAVA PEDINDO 👇
+    // O CascadeType.ALL faz a mágica de salvar o usuário de login automaticamente quando você salva o paciente
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario", unique = true)
+    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
-    @Column(name = "numero_prontuario", unique = true, length = 20)
+    @Column(name = "numero_prontuario")
     private String numeroProntuario;
+
+    // Dados pessoais
+    private String nome;
+    private String cpf;
 
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
     private SexoPaciente sexo;
 
-    @Column(name = "nome_responsavel", length = 100)
+    // 👇 AS GAVETAS DE EMERGÊNCIA QUE O SERVICE ESTAVA PEDINDO 👇
+    @Column(name = "nome_responsavel")
     private String nomeResponsavel;
 
-    @Column(name = "telefone_responsavel", length = 20)
+    @Column(name = "telefone_responsavel")
     private String telefoneResponsavel;
 
-    @Column(nullable = false)
-    private Boolean ativo = true;
+    private Boolean ativo;
 
-    @Column(name = "criado_em", nullable = false, updatable = false)
-    private LocalDateTime criadoEm = LocalDateTime.now();
-
-    public Paciente() {
-    }
-
+    // Método para exclusão lógica
     public void inativar() {
         this.ativo = false;
     }
